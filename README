@@ -1,1 +1,26 @@
+Code based on the OpenABB project by Michael Dawson-Haggerty:
+https://github.com/robotics/open_abb
 
+Summary:
+  Code to go on the IRC5 controller:
+    MainModule.mod
+      Enables extruder, and starts the Server process. 
+      Also contains some useful test functions for I/O
+    SERVER.mod
+      Parses input from PC
+
+  PC code:
+    abb.py
+      Interface with IRC5 controller via ethernet
+    abb_testing.py
+      Similar functions to abb.py, but animates the toolpath output
+    testConnections.py
+      Shows the use of a few functions, tests digital output
+    RESET_POSITION.py
+      Resets robot position and sets all signals to 0
+    
+    
+Setup:
+  Requires a DSQC 652 digital I/O board, configured to have a Group Output called GO_Signal
+  IP address (line 40-41) in SERVER.mod should be set for if using the robot (192...) or RobotStudio (125...)
+    This should be called when intiialising the interface in abb.py
