@@ -1,6 +1,9 @@
 Code based on the OpenABB project by Michael Dawson-Haggerty:
 https://github.com/robotics/open_abb
 
+See this in action at:
+https://www.youtube.com/watch?v=mI93TwYS0So
+
 Summary:
   Code to go on the IRC5 controller:
     MainModule.mod
