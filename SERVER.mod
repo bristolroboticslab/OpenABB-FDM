@@ -204,7 +204,6 @@ PROC ServerMain()
         ! Execution of the command
         TEST instructionCode
             CASE -1:
-                ResetRobotPosition;
                 IF nParams = 1 THEN
                     IF params{1} = -1 THEN
                         ChangeExtruderState (0);
