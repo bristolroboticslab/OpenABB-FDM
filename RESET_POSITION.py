@@ -23,6 +23,12 @@ if modeSelection == 1:
 elif modeSelection == 0:
     R = abb.Robot("192.168.125.1")
     print("Robot resetting now")
+elif modeSelection == 2:
+    R = abb.Robot("192.168.125.1")
+    print("Robot moving backwards and then resetting")
+    currPos = R.get_cartesian()
+    currPos[0][0] -= 100
+    R.set_cartesian(currPos)
 else:
     R = abb.Robot("192.168.125.1")
     print("---- WARNING ----")

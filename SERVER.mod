@@ -15,8 +15,8 @@ MODULE SERVER
 !////////////////
 
 ! Robot configuration
-PERS tooldata currentTool := [TRUE,[[0,0,50],[1,0,0,0]],[0.001,[0,0,0.001],[1,0,0,0],0,0,0]];    
-PERS wobjdata currentWobj := [FALSE,TRUE,"",[[0,0,0],[1,0,0,0]],[[600,0,300],[1,0,0,0]]];   
+PERS tooldata currentTool := [TRUE,[[-44.5,9.9,114],[1,0,0,0]],[0.001,[0,0,0.001],[1,0,0,0],0,0,0]];    
+PERS wobjdata currentWobj := [FALSE,TRUE,"",[[0,0,0],[1,0,0,0]],[[633.5,9.9,380],[1,0,0,0]]];   
 PERS speeddata currentSpeed;
 PERS zonedata currentZone;
 
@@ -69,6 +69,8 @@ VAR robtarget circPoint;
 VAR num ok;
 CONST num SERVER_BAD_MSG :=  0;
 CONST num SERVER_OK := 1;
+TASK PERS tooldata testNozzle:=[TRUE,[[-47.7913,12.961,103.954],[1,0,0,0]],[0.5,[0,0,0],[1,0,0,0],0,0,0]];
+TASK PERS tooldata nozzle:=[TRUE,[[-44.5058,10.7853,113.761],[1,0,0,0]],[1,[0,0,0],[1,0,0,0],0,0,0]];
 
 	
 !////////////////
@@ -159,6 +161,7 @@ PROC Initialize()
     currentZone := [FALSE, 0.3, 0.3,0.3,0.03,0.3,0.03]; !z0
 	
 	!Find the current external axis values so they don't move when we start
+    ActUnit STN1;
 	jointsTarget := CJointT();
 	externalAxis := jointsTarget.extax;
 ENDPROC
@@ -207,14 +210,18 @@ PROC ServerMain()
                 IF nParams = 1 THEN
                     IF params{1} = -1 THEN
                         ChangeExtruderState (0);
+                        DeactUnit STN1;
                     ELSEIF params{1} = 0 THEN
                         ResetRobotPosition;
                         ChangeExtruderState(0);
+                        DeactUnit STN1;
                     ELSEIF params{1} = 1 THEN
                         ResetRobotPosition;
                         ChangeExtruderState(1);
+                        ActUnit STN1;
                     ELSEIF params{1} = 2 THEN
                         ChangeExtruderState(1);
+                        ActUnit STN1;
                     ENDIF
                     ok := SERVER_OK;
                 ELSE
@@ -231,6 +238,9 @@ PROC ServerMain()
 
             CASE 1: !Cartesian Move
                 IF nParams = 8 THEN
+                    jointsTarget := CJointT();
+	                externalAxis := jointsTarget.extax;
+                    
                     cartesianTarget :=[[params{2},params{3},params{4}],
                                        [params{5},params{6},params{7},params{8}],
                                        [0,0,0,0],
@@ -249,6 +259,9 @@ PROC ServerMain()
 				
             CASE 2: !Joint Move
                 IF nParams = 6 THEN
+                    jointsTarget := CJointT();
+                    externalAxis := jointsTarget.extax;
+
                     jointsTarget:=[[params{1},params{2},params{3},params{4},params{5},params{6}], externalAxis];
                     ok := SERVER_OK;
                     moveCompleted := FALSE;
@@ -289,11 +302,9 @@ PROC ServerMain()
                 
 			CASE 5: !Get external axis positions
                 IF nParams=0 THEN
-                    ActUnit STN1;
                     jointsTarget:=CJointT();
                     addString:=ValToStr(jointsTarget.extax.eax_b)+" ";
                     addString:=addString + ValToStr(jointsTarget.extax.eax_c);
-                    DeactUnit STN1;
                     ok:=SERVER_OK;
                 ELSE
                     ok:=SERVER_BAD_MSG;
@@ -407,7 +418,14 @@ PROC ServerMain()
                 ENDIF
 
             CASE 30: !Add Cartesian Coordinates to buffer
-                IF nParams = 7 THEN
+                IF nParams = 7 OR nParams = 8 THEN
+                    ! If external axis is necessary
+                    jointsTarget := CJointT();
+                    externalAxis := jointsTarget.extax;
+                    IF nParams = 8 THEN
+                        externalAxis.eax_c := params{8};
+                    ENDIF
+
                     cartesianTarget :=[[params{1},params{2},params{3}],
                                         [params{4},params{5},params{6},params{7}],
                                         [0,0,0,0],
@@ -487,9 +505,7 @@ PROC ServerMain()
                     jointsTarget.extax.eax_c := params{2};
                     ok := SERVER_OK;
                     moveCompleted := FALSE;
-                    ActUnit STN1;
                     MoveAbsJ jointsTarget, currentSpeed, fine, currentTool \Wobj:=currentWobj;
-                    DeactUnit STN1;
                     moveCompleted := TRUE;
                 ELSE
                     ok :=SERVER_BAD_MSG;
@@ -497,6 +513,9 @@ PROC ServerMain()
 
             CASE 35: !Specify circPoint for circular move, and then wait on toPoint
                 IF nParams = 7 THEN
+                    jointsTarget := CJointT();
+                    externalAxis := jointsTarget.extax;
+
                     circPoint :=[[params{1},params{2},params{3}],
                                 [params{4},params{5},params{6},params{7}],
                                 [0,0,0,0],
@@ -509,6 +528,9 @@ PROC ServerMain()
 
             CASE 36: !specify toPoint, and use circPoint specified previously
                 IF nParams = 7 THEN
+                    jointsTarget := CJointT();
+                    externalAxis := jointsTarget.extax;
+
                     cartesianTarget :=[[params{1},params{2},params{3}],
                                         [params{4},params{5},params{6},params{7}],
                                         [0,0,0,0],
